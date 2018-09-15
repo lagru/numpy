@@ -110,7 +110,7 @@ def _slice_at_axis(shape, axis, sl):
     return slice_tup * axis + (sl,) + slice_tup * (len(shape) - axis - 1)
 
 
-def _pad_simple(array, pad_width, fill_value=None):
+def _pad_simple(array, pad_width):
     """Pad array on all sides with either a single value or undefined values.
 
     Parameters
@@ -119,10 +119,7 @@ def _pad_simple(array, pad_width, fill_value=None):
         Array to grow.
     pad_width : sequence of tuple[int, int]
         Pad width on both sides for each dimension in `arr`.
-    fill_value : scalar, optional
-        If provided the padded area is filled with this value, otherwise
-        the pad area left undefined.
-
+    
     Returns
     -------
     padded : ndarray
@@ -136,9 +133,6 @@ def _pad_simple(array, pad_width, fill_value=None):
         for size, (left, right) in zip(array.shape, pad_width)
     )
     padded = np.empty(new_shape, dtype=array.dtype)
-
-    if fill_value is not None:
-        padded.fill(fill_value)
 
     # Copy old array into correct space
     old_area = tuple(
@@ -799,7 +793,7 @@ def pad(array, pad_width, mode, **kwargs):
         # Old behavior: Use user-supplied function with np.apply_along_axis
         function = mode
         # Create a new zero padded array
-        padded, _ = _pad_simple(array, pad_width, fill_value=0)
+        padded = pad(array, pad_width, mode='constant', constant_values=0)
         # And apply along each axis
         for axis in range(padded.ndim):
             np.apply_along_axis(function, axis, padded, pad_width[axis],
