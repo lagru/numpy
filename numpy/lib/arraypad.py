@@ -879,6 +879,15 @@ def pad(array, pad_width, mode, **kwargs):
     stat_functions = {"maximum": np.max, "minimum": np.min,
                       "mean": np.mean, "median": np.median}
 
+    if mode == "constant":
+        values = kwargs.get("constant_values", 0)
+        values = _as_pairs(values, array.ndim)
+        if len(set(values)) == 1:
+            # special case: same constant at all boundaries
+            padded, original_area_slice = _pad_simple(array, pad_width,
+                                                      fill_value=values[0][0])
+            return padded
+
     # Create array with final shape and original values
     # (padded area is undefined)
     padded, original_area_slice = _pad_simple(array, pad_width)
@@ -887,8 +896,6 @@ def pad(array, pad_width, mode, **kwargs):
     axes = range(padded.ndim)
 
     if mode == "constant":
-        values = kwargs.get("constant_values", 0)
-        values = _as_pairs(values, padded.ndim)
         for axis, index_pair, value_pair in zip(axes, pad_width, values):
             roi = _view_roi(padded, original_area_slice, axis)
             _set_pad_area(roi, axis, index_pair, value_pair)
